@@ -8,3 +8,12 @@
     RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
 
+# Configurações de segurança
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+</IfModule>
+
+# Desabilitar listagem de diretórios
+Options -Indexes
+

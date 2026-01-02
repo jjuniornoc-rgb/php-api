@@ -1,14 +1,25 @@
 <?php
 
+// Tratamento de erros básico
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Core\Router;
 use App\Core\Request;
 use Dotenv\Dotenv;
 
-// Carregar variáveis de ambiente
-$dotenv = Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->load();
+// Carregar variáveis de ambiente (opcional)
+if (file_exists(__DIR__ . '/../.env')) {
+    try {
+        $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
+        $dotenv->load();
+    } catch (Exception $e) {
+        // Ignorar erros de .env em produção
+    }
+}
 
 // Headers CORS
 header('Access-Control-Allow-Origin: *');
