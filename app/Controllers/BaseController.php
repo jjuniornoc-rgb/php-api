@@ -3,16 +3,9 @@
 namespace App\Controllers;
 
 use App\Core\Response;
-use App\Core\Database;
 
 class BaseController
 {
-    protected $db;
-
-    public function __construct()
-    {
-        $this->db = Database::getInstance();
-    }
 
     protected function success($data = null, $message = 'Sucesso', $statusCode = 200)
     {

@@ -6,32 +6,30 @@ use App\Core\Request;
 
 class UserController extends BaseController
 {
+    // Armazenamento em memória (simulado)
+    private static $users = [
+        ['id' => 1, 'name' => 'João Silva', 'email' => 'joao@example.com', 'created_at' => '2024-01-01 10:00:00'],
+        ['id' => 2, 'name' => 'Maria Santos', 'email' => 'maria@example.com', 'created_at' => '2024-01-02 11:00:00'],
+        ['id' => 3, 'name' => 'Pedro Oliveira', 'email' => 'pedro@example.com', 'created_at' => '2024-01-03 12:00:00']
+    ];
+
     public function index(Request $request)
     {
-        try {
-            $users = $this->db->fetchAll("SELECT id, name, email, created_at FROM users ORDER BY id DESC");
-            $this->success($users, 'Usuários listados com sucesso');
-        } catch (\Exception $e) {
-            $this->error('Erro ao listar usuários: ' . $e->getMessage(), 500);
-        }
+        $this->success(self::$users, 'Usuários listados com sucesso');
     }
 
     public function show(Request $request)
     {
-        $id = $request->getParam(0);
+        $id = (int) $request->getParam(0);
+        
+        $user = $this->findUserById($id);
 
-        try {
-            $user = $this->db->fetchOne("SELECT id, name, email, created_at FROM users WHERE id = ?", [$id]);
-
-            if (!$user) {
-                $this->notFound('Usuário não encontrado');
-                return;
-            }
-
-            $this->success($user, 'Usuário encontrado');
-        } catch (\Exception $e) {
-            $this->error('Erro ao buscar usuário: ' . $e->getMessage(), 500);
+        if (!$user) {
+            $this->notFound('Usuário não encontrado');
+            return;
         }
+
+        $this->success($user, 'Usuário encontrado');
     }
 
     public function store(Request $request)
@@ -43,24 +41,24 @@ class UserController extends BaseController
             'email' => 'required|email|max:100'
         ]);
 
-        try {
-            $this->db->query(
-                "INSERT INTO users (name, email, created_at) VALUES (?, ?, NOW())",
-                [$data['name'], $data['email']]
-            );
+        // Gerar novo ID
+        $newId = count(self::$users) > 0 ? max(array_column(self::$users, 'id')) + 1 : 1;
 
-            $userId = $this->db->lastInsertId();
-            $user = $this->db->fetchOne("SELECT id, name, email, created_at FROM users WHERE id = ?", [$userId]);
+        $user = [
+            'id' => $newId,
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'created_at' => date('Y-m-d H:i:s')
+        ];
 
-            $this->success($user, 'Usuário criado com sucesso', 201);
-        } catch (\Exception $e) {
-            $this->error('Erro ao criar usuário: ' . $e->getMessage(), 500);
-        }
+        self::$users[] = $user;
+
+        $this->success($user, 'Usuário criado com sucesso', 201);
     }
 
     public function update(Request $request)
     {
-        $id = $request->getParam(0);
+        $id = (int) $request->getParam(0);
         $data = $request->getBody();
 
         $this->validate($data, [
@@ -68,57 +66,58 @@ class UserController extends BaseController
             'email' => 'email|max:100'
         ]);
 
-        try {
-            $user = $this->db->fetchOne("SELECT id FROM users WHERE id = ?", [$id]);
+        $userIndex = $this->findUserIndexById($id);
 
-            if (!$user) {
-                $this->notFound('Usuário não encontrado');
-                return;
-            }
-
-            $updates = [];
-            $params = [];
-
-            if (isset($data['name'])) {
-                $updates[] = "name = ?";
-                $params[] = $data['name'];
-            }
-
-            if (isset($data['email'])) {
-                $updates[] = "email = ?";
-                $params[] = $data['email'];
-            }
-
-            if (!empty($updates)) {
-                $params[] = $id;
-                $sql = "UPDATE users SET " . implode(', ', $updates) . " WHERE id = ?";
-                $this->db->query($sql, $params);
-            }
-
-            $user = $this->db->fetchOne("SELECT id, name, email, created_at FROM users WHERE id = ?", [$id]);
-            $this->success($user, 'Usuário atualizado com sucesso');
-        } catch (\Exception $e) {
-            $this->error('Erro ao atualizar usuário: ' . $e->getMessage(), 500);
+        if ($userIndex === false) {
+            $this->notFound('Usuário não encontrado');
+            return;
         }
+
+        if (isset($data['name'])) {
+            self::$users[$userIndex]['name'] = $data['name'];
+        }
+
+        if (isset($data['email'])) {
+            self::$users[$userIndex]['email'] = $data['email'];
+        }
+
+        $this->success(self::$users[$userIndex], 'Usuário atualizado com sucesso');
     }
 
     public function destroy(Request $request)
     {
-        $id = $request->getParam(0);
+        $id = (int) $request->getParam(0);
 
-        try {
-            $user = $this->db->fetchOne("SELECT id FROM users WHERE id = ?", [$id]);
+        $userIndex = $this->findUserIndexById($id);
 
-            if (!$user) {
-                $this->notFound('Usuário não encontrado');
-                return;
-            }
-
-            $this->db->query("DELETE FROM users WHERE id = ?", [$id]);
-            $this->success(null, 'Usuário deletado com sucesso');
-        } catch (\Exception $e) {
-            $this->error('Erro ao deletar usuário: ' . $e->getMessage(), 500);
+        if ($userIndex === false) {
+            $this->notFound('Usuário não encontrado');
+            return;
         }
+
+        unset(self::$users[$userIndex]);
+        self::$users = array_values(self::$users); // Reindexar array
+
+        $this->success(null, 'Usuário deletado com sucesso');
+    }
+
+    private function findUserById($id)
+    {
+        foreach (self::$users as $user) {
+            if ($user['id'] === $id) {
+                return $user;
+            }
+        }
+        return null;
+    }
+
+    private function findUserIndexById($id)
+    {
+        foreach (self::$users as $index => $user) {
+            if ($user['id'] === $id) {
+                return $index;
+            }
+        }
+        return false;
     }
 }
-

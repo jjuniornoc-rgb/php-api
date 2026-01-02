@@ -1,6 +1,6 @@
 # API PHP RESTful
 
-API RESTful moderna desenvolvida em PHP com estrutura organizada e boas práticas.
+API RESTful moderna desenvolvida em PHP com estrutura organizada e boas práticas. **Sem banco de dados** - utiliza armazenamento em memória para simplicidade.
 
 ## 📁 Estrutura do Projeto
 
@@ -10,31 +10,23 @@ php/
 │   ├── Core/
 │   │   ├── Router.php       # Sistema de rotas
 │   │   ├── Request.php      # Classe de requisição
-│   │   ├── Response.php     # Classe de resposta
-│   │   └── Database.php     # Conexão com banco de dados
-│   ├── Controllers/
-│   │   ├── BaseController.php
-│   │   ├── HomeController.php
-│   │   └── UserController.php
-│   └── Models/
-│       └── User.php         # Model de exemplo
+│   │   └── Response.php     # Classe de resposta
+│   └── Controllers/
+│       ├── BaseController.php
+│       ├── HomeController.php
+│       └── UserController.php
 ├── config/
 │   ├── env.php              # Configurações do ambiente
 │   └── env.example.php      # Exemplo de configurações
-├── database/
-│   └── migrations/
-│       └── create_users_table.sql
 ├── public/
 │   ├── index.php            # Ponto de entrada da aplicação
 │   └── .htaccess            # Configuração Apache (opcional)
 ├── routes/
 │   └── api.php              # Definição de rotas
 ├── .env                     # Variáveis de ambiente (criar manualmente)
-├── .env.example             # Exemplo de variáveis de ambiente
 ├── composer.json            # Dependências do projeto
 ├── .gitignore               # Arquivos ignorados pelo Git
-├── README.md
-└── INSTALACAO.md            # Guia de instalação detalhado
+└── README.md
 ```
 
 ## 🚀 Instalação
@@ -45,29 +37,21 @@ php/
 composer install
 ```
 
-### 2. Configurar ambiente
+### 2. Configurar ambiente (opcional)
 
-Copie o arquivo `.env.example` para `.env` e configure as variáveis:
-
-```bash
-cp .env.example .env
-```
-
-Edite o arquivo `.env` com suas configurações:
+Copie o conteúdo de `env-example.txt` para um arquivo `.env` na raiz do projeto:
 
 ```env
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=api_db
-DB_USER=root
-DB_PASS=sua_senha
+APP_NAME=PHP_API
+APP_ENV=development
+APP_DEBUG=true
+APP_URL=http://localhost
+JWT_SECRET=your-secret-key-here-change-in-production
+JWT_EXPIRATION=3600
+SERVER_PORT=8000
 ```
 
-### 3. Criar banco de dados
-
-Execute o script SQL em `database/migrations/create_users_table.sql` no seu banco de dados MySQL.
-
-### 4. Iniciar servidor
+### 3. Iniciar servidor
 
 ```bash
 composer serve
@@ -92,6 +76,8 @@ A API estará disponível em: `http://localhost:8000`
 - `POST /api/users` - Criar novo usuário
 - `PUT /api/users/{id}` - Atualizar usuário
 - `DELETE /api/users/{id}` - Deletar usuário
+
+**Nota:** Os dados são armazenados em memória e serão perdidos ao reiniciar o servidor.
 
 ## 📝 Exemplos de Uso
 
@@ -128,13 +114,21 @@ curl -X DELETE http://localhost:8000/api/users/1
 
 - PHP 7.4+
 - Composer
-- MySQL
-- PDO
 - Dotenv
 
 ## 📦 Dependências
 
 - `vlucas/phpdotenv` - Gerenciamento de variáveis de ambiente
+
+## 💡 Características
+
+- ✅ Estrutura MVC organizada
+- ✅ Sistema de rotas RESTful
+- ✅ Validação de dados
+- ✅ Respostas JSON padronizadas
+- ✅ CORS configurado
+- ✅ Sem banco de dados (armazenamento em memória)
+- ✅ Fácil de expandir e personalizar
 
 ## 🔒 Segurança
 
@@ -146,4 +140,3 @@ curl -X DELETE http://localhost:8000/api/users/1
 ## 📄 Licença
 
 Este projeto é de código aberto e está disponível sob a licença MIT.
-
